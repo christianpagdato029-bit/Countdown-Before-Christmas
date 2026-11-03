@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Christmas Countdown</title>
+</head>
+<body>
+
+  <style>
+/* Cinematic Christmas countdown
+   Fonts: Cinzel (title + numbers) at Cormorant Garamond (text).
+   Kailangan ng internet para sa fonts; may fallback na Georgia kung wala. */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --gold: #ffd98a;
+  --gold-deep: #e0a23c;
+  --cream: #fff4dc;
+  --muted: #c9b48a;
+  --red: #e5484d;
+  --green: #3fb86f;
+  --bar: 6vh; /* taas ng itim na letterbox sa taas at baba */
+}
+
+/* ---------- Background: gabi, pine green at crimson sa baba ---------- */
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--bar) + 2rem) 1rem;
+  overflow-x: hidden;
+  color: var(--cream);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(255, 170, 70, 0.2), transparent 55%),
+    radial-gradient(ellipse at 12% 105%, rgba(160, 24, 40, 0.38), transparent 55%),
+    radial-gradient(ellipse at 88% 105%, rgba(18, 96, 56, 0.42), transparent 55%),
+    linear-gradient(180deg, #050b14 0%, #091a17 60%, #120a0a 100%);
+  background-attachment: fixed;
+}
+
+/* ---------- Niyebe (dalawang layer: malapit at malayo) ---------- */
+html::before,
+html::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+html::before {
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(3px 3px at 90px 40px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(2px 2px at 160px 120px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(2.5px 2.5px at 230px 200px, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(2px 2px at 40px 250px, rgba(255, 255, 255, 0.7), transparent);
+  background-size: 300px 300px;
+  animation: snow-near 11s linear infinite;
+}
+
+html::after {
+  background-image:
+    radial-gradient(1.5px 1.5px at 60px 80px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 140px 20px, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 180px 150px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 100px 190px, rgba(255, 255, 255, 0.5), transparent);
+  background-size: 200px 200px;
+  animation: snow-far 26s linear infinite;
+}
+
+@keyframes snow-near {
+  to { background-position: 0 300px; }
+}
+
+@keyframes snow-far {
+  to { background-position: -200px 200px; }
+}
+
+/* ---------- Pelikula: letterbox + vignette + film grain ---------- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background:
+    linear-gradient(#000, #000) top / 100% var(--bar) no-repeat,
+    linear-gradient(#000, #000) bottom / 100% var(--bar) no-repeat,
+    radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.75) 100%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: -10%;
+  z-index: 11;
+  pointer-events: none;
+  opacity: 0.09;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 0.9s steps(1) infinite;
+}
+
+@keyframes grain {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-3%, 2%); }
+  40%  { transform: translate(2%, -3%); }
+  60%  { transform: translate(-2%, -1%); }
+  80%  { transform: translate(3%, 3%); }
+}
+
+/* ---------- Nilalaman ---------- */
+.countdown {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 880px);
+  padding: 2rem;
+  text-align: center;
+  /* ito ang nag-iisang entrance: dahan-dahang lumilitaw na parang title card */
+  animation: reveal 2.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(8px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+h1 {
+  margin-bottom: 0.75rem;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(2rem, 6vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: linear-gradient(100deg, #fff1c9 20%, #ffb347 40%, #fff1c9 60%, #fff1c9 80%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(255, 170, 60, 0.35));
+  animation: shimmer 7s linear infinite;
+}
+
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
+.target {
+  margin-bottom: 3rem;
+  font-size: 1.4rem;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.target::before,
+.target::after {
+  content: "";
+  display: inline-block;
+  width: 2.5rem;
+  height: 1px;
+  margin: 0 1rem;
+  vertical-align: middle;
+  background: linear-gradient(90deg, transparent, var(--gold-deep));
+}
+
+.target::after {
+  transform: scaleX(-1);
+}
+
+/* ---------- Timer ---------- */
+.timer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.box {
+  --light: var(--red);
+  position: relative;
+  min-width: 90px;
+  padding: 2rem 1rem 1.5rem;
+  border: 1px solid rgba(255, 217, 138, 0.22);
+  border-radius: 4px;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.015) 60%),
+    rgba(8, 14, 22, 0.55);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.box:nth-child(even) {
+  --light: var(--green);
+}
+
+/* maliit na ilaw sa taas ng bawat kahon: pula, berde, pula, berde */
+.box::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 22%;
+  right: 22%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--light), transparent);
+  box-shadow: 0 0 14px 1px var(--light);
+}
+
+.box span {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+  text-shadow: 0 0 22px rgba(255, 170, 60, 0.55);
+  animation: breathe 5s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { text-shadow: 0 0 16px rgba(255, 170, 60, 0.4); }
+  50%      { text-shadow: 0 0 30px rgba(255, 170, 60, 0.75); }
+}
+
+.box small {
+  display: block;
+  font-size: 1.15rem;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+/* ---------- Mensahe sa dulo ---------- */
+.message {
+  min-height: 2.6rem;
+  margin-top: 2.5rem;
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: #ffe7b8;
+  text-shadow: 0 0 24px rgba(255, 170, 60, 0.6);
+}
+
+/* idadagdag mo ang class na ito gamit JS kapag tapos na ang countdown */
+.timer.finished .box {
+  border-color: rgba(255, 217, 138, 0.65);
+}
+
+.timer.finished .box span {
+  color: #fff;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.8),
+    0 0 32px rgba(255, 200, 100, 0.9);
+  animation-duration: 2s;
+}
+
+/* ---------- Maliit na screen ---------- */
+@media (max-width: 520px) {
+  :root {
+    --bar: 4vh;
+  }
+
+  .timer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .target::before,
+  .target::after {
+    width: 1.2rem;
+    margin: 0 0.5rem;
+  }
+}
+
+/* ---------- Para sa mga ayaw ng galaw ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+  }
+}
+  </style>
+
+   <main class="countdown">
+    <h1>Christmas Countdown</h1>
+    <p class="target" id="targetDate"></p>
+
+    <div class="timer" id="timer">
+      <div class="box"><span id="days">00</span><small>Days</small></div>
+      <div class="box"><span id="hours">00</span><small>Hours</small></div>
+      <div class="box"><span id="minutes">00</span><small>Minutes</small></div>
+      <div class="box"><span id="seconds">00</span><small>Seconds</small></div>
+    </div>
+
+    <p class="message" id="message"></p>
+  </main>
+
+</body>
+
+<script>
+  const date = new Date(2026, 11, 25);
+
+const target = document.getElementById('targetDate');
+target.textContent = date.toLocaleDateString();
+
+const araw = document.getElementById('days');
+const oras = document.getElementById('hours');
+const minuto = document.getElementById('minutes');
+const segundo = document.getElementById('seconds');
+
+const message = document.getElementById('message');
+const timer = document.getElementById('timer');
+function updatecountdown() {
+
+    const bago = new Date();
+    const bawasan = date - bago;
+
+     if (bawasan <= 0) {
+        clearInterval(interval);
+        message.textContent = 'Merry Christmas! 🌲';
+          timer.classList.add('finished');
+          araw.textContent = '00';
+          oras.textContent = '00';
+          minuto.textContent = '00';
+          segundo.textContent = '00';
+          return;
+    }
+
+    const devide = Math.floor(bawasan / 1000);
+
+    const setdays = 86400;
+    const sethours = 3600;
+    const setminutes = 60;
+
+    const days = Math.floor(devide / setdays);
+    const hours = Math.floor((devide % setdays) / sethours);
+    const minutes = Math.floor((devide % sethours) / setminutes);
+    const seconds = Math.floor(devide % setminutes);
+
+    araw.textContent = String(days).padStart(2, '0');
+    oras.textContent = String(hours).padStart(2, '0');
+    minuto.textContent = String(minutes).padStart(2, '0');
+    segundo.textContent = String(seconds).padStart(2, '0');
+}
+const interval = setInterval(updatecountdown, 1000);
+updatecountdown();
+
+</script>
+</html>
